@@ -27,7 +27,7 @@ _log = logging.getLogger(__name__)
 
 PROVIDER_NAME: Final = "wispr"
 _FINALIZE_TIMEOUT_S: Final = 30.0
-_CLIENT_REPO: Final = "git+ssh://git@github.com/D4NZ-jpg/wispr-client.git"
+_CLIENT_REPO: Final = "git+https://github.com/D4NZ-jpg/wispr-client.git"
 _NOT_INSTALLED: Final = (
     f"wispr CLI not found. Install it with `uv tool install {_CLIENT_REPO}` "
     "or set plugins.entries.wispr-stt.settings.wispr_bin"
