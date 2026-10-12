@@ -1,0 +1,35 @@
+[project]
+name = "hermes-wispr-stt"
+version = "0.1.0"
+description = "Hermes Agent STT plugin backed by Wispr Flow (via the wispr-client CLI)"
+requires-python = ">=3.11"
+# Runtime deps admitted by Hermes' package manager. pydantic already ships with Hermes core.
+dependencies = ["pydantic>=2.7,<3"]
+
+[dependency-groups]
+dev = ["pytest>=8", "mypy>=1.13", "ruff>=0.8", "pyyaml>=6"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["live: uses the real `wispr` CLI and your Wispr account (run with: pytest -m live)"]
+addopts = "-m 'not live' --import-mode=importlib -p no:cacheprovider -p _layout"
+pythonpath = ["tests"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "ANN", "PL", "PT", "TC", "RET", "PTH", "N", "S", "BLE"]
+ignore = ["PLR0913", "PLR2004", "S603", "ANN401"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["N999"]  # repo dir name; Hermes imports it as hermes_plugins.<slug>
+"tests/**" = ["S101", "ANN", "PLR2004", "TC", "S108", "PT018"]
+
+[tool.mypy]
+strict = true
+python_version = "3.11"
+plugins = ["pydantic.mypy"]
+explicit_package_bases = true
+mypy_path = "stubs"  # agent.* is Hermes core; typed via stubs/ (the real module exists inside Hermes)

@@ -1,0 +1,30 @@
+name: wispr-stt
+version: 0.1.0
+manifest_version: 2
+api_version: 1
+description: Speech-to-text through your Wispr Flow account (unofficial; uses the `wispr` CLI from wispr-client)
+author: Danz
+license: MIT
+homepage: https://github.com/D4NZ-jpg/hermes-wispr-stt
+tags: [stt, transcription, voice, wispr]
+config_schema:
+  wispr_bin:
+    type: str
+    default: ""
+    description: Path to the `wispr` executable (empty = look it up on PATH and in ~/.local/bin)
+  formatting:
+    type: bool
+    default: true
+    description: Use Wispr's formatting/clean-up (false = raw ASR transcript)
+  app_name:
+    type: str
+    default: Hermes Agent
+    description: App name sent to Wispr as dictation context
+  vocabulary:
+    type: list
+    default: []
+    description: Extra words/names to bias recognition (merged with stt.prompt terms)
+  timeout_s:
+    type: float
+    default: 120
+    description: Max seconds for one file transcription
