@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Stand-in for the `wispr` CLI. Behaviour is selected with FAKE_WISPR_MODE:
-ok (default) | notloggedin | crash | garbage. Echoes its arguments into the transcript so tests can assert
-what the plugin passed."""
+ok (default) | notloggedin | crash | garbage | env. Echoes its arguments (or, in env mode, its environment
+variable names) into the transcript so tests can assert what the plugin passed."""
 
 import json
 import os
@@ -25,6 +25,9 @@ def main() -> int:
     if mode == "notloggedin":
         event({"type": "error", "error": "not logged in", "kind": "NotLoggedInError"})
         return 3
+
+    if mode == "env":  # report the inherited environment instead of a transcript
+        args = sorted(os.environ)
 
     received = 0
     if cmd == "stream":

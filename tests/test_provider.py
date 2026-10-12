@@ -70,6 +70,49 @@ def test_vocabulary_terms(prompt: str | None, extra: tuple[str, ...], expected: 
     assert cli_mod.vocabulary_terms(prompt, extra) == expected
 
 
+# --------------------------------------------------------------------------- CLI environment
+
+_INHERITED_PYTHON_ENV = {
+    "PYTHONPATH": "/hermes/site-packages",
+    "PYTHONHOME": "/hermes",
+    "VIRTUAL_ENV": "/hermes/.venv",
+    "VIRTUAL_ENV_PROMPT": "hermes",
+    "__PYVENV_LAUNCHER__": "/hermes/.venv/bin/python",
+}
+
+
+@pytest.fixture
+def python_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("FAKE_WISPR_MODE", "env")
+    monkeypatch.setenv("WISPR_HOME", "/kept")
+    for key, value in _INHERITED_PYTHON_ENV.items():
+        monkeypatch.setenv(key, value)
+
+
+def _env_keys(transcript: str) -> set[str]:
+    return set(transcript.split("args=", 1)[1].split())
+
+
+@pytest.mark.usefixtures("python_env")
+def test_transcribe_strips_python_env(fake_wispr: Path, audio: str) -> None:
+    result = make_provider(wispr_bin=str(fake_wispr)).transcribe(audio)
+    assert result["success"] is True
+    keys = _env_keys(result["transcript"])
+    assert not keys & _INHERITED_PYTHON_ENV.keys()
+    assert "WISPR_HOME" in keys
+
+
+@pytest.mark.usefixtures("python_env")
+def test_stream_strips_python_env(fake_wispr: Path) -> None:
+    session = make_provider(wispr_bin=str(fake_wispr)).open_stream_session()
+    session.push_audio(b"\x00" * 640)
+    result = session.finalize()
+    assert result["success"] is True
+    keys = _env_keys(result["transcript"])
+    assert not keys & _INHERITED_PYTHON_ENV.keys()
+    assert "WISPR_HOME" in keys
+
+
 # --------------------------------------------------------------------------- file transcription
 
 

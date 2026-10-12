@@ -21,6 +21,17 @@ if TYPE_CHECKING:
 _PROMPT_SPLIT: Final = re.compile(r"[,;\n]+")
 _MAX_TERM_WORDS: Final = 5
 _MAX_TERMS: Final = 100
+# Hermes' interpreter settings must not leak into the CLI, which runs in its own uv tool environment.
+_PYTHON_ENV_VARS: Final = frozenset({"VIRTUAL_ENV", "VIRTUAL_ENV_PROMPT", "__PYVENV_LAUNCHER__"})
+
+
+def cli_env() -> dict[str, str]:
+    """The current environment without ``PYTHON*`` and virtualenv variables inherited from Hermes."""
+    return {
+        key: value
+        for key, value in os.environ.items()
+        if not key.startswith("PYTHON") and key not in _PYTHON_ENV_VARS
+    }
 
 
 def find_wispr(configured: str = "") -> Path | None:
@@ -74,7 +85,9 @@ class WisprCli:
         """Run ``wispr transcribe --json``; always returns an event (never raises for CLI failures)."""
         args = [*self._args("transcribe", language, vocabulary), "--json", "--", file_path]
         try:
-            proc = subprocess.run(args, capture_output=True, timeout=self.settings.timeout_s, check=False)
+            proc = subprocess.run(
+                args, capture_output=True, timeout=self.settings.timeout_s, check=False, env=cli_env()
+            )
         except subprocess.TimeoutExpired:
             return ErrorEvent(
                 v=1,
@@ -92,6 +105,7 @@ class WisprCli:
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            env=cli_env(),
         )
 
 
